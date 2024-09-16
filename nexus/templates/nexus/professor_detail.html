@@ -1,0 +1,18 @@
+{% extends 'nexus/base.html' %}
+
+{% block title %}{{ professor.name }} - Profile{% endblock %}
+
+{% block content %}
+<h1 class="mt-5">{{ professor.name }}</h1>
+<p><strong>Department:</strong> <a href="{% url 'department_detail' professor.department.id %}">{{ professor.department.name }}</a></p>
+<p><strong>University:</strong> {{ professor.university.name }}</p>
+<p><strong>Email:</strong> <a href="mailto:{{ professor.email }}">{{ professor.email }}</a></p>
+{% if professor.website %}
+<p><strong>Website:</strong> <a href="{{ professor.website }}">{{ professor.website }}</a></p>
+{% endif %}
+<p><strong>Research Interests:</strong>
+    {% for interest in professor.research_interests.all %}
+        {{ interest.name }}{% if not forloop.last %}, {% endif %}
+    {% endfor %}
+</p>
+{% endblock %}

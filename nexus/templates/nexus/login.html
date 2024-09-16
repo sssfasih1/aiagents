@@ -1,0 +1,31 @@
+<!-- nexus/templates/nexus/login.html -->
+
+{% extends 'nexus/base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+    <!-- Display messages (for errors or success) -->
+    {% if messages %}
+        <div class="alert alert-danger">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <h1 class="mt-5">Login</h1>
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" name="username" class="form-control" id="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" name="password" class="form-control" id="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+    <p>Don't have an account? <a href="{% url 'signup' %}">Sign up here</a>.</p>
+{% endblock %}

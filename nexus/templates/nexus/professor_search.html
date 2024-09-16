@@ -1,0 +1,153 @@
+{% extends 'nexus/base.html' %}
+
+{% block title %}Professor Search{% endblock %}
+
+{% block content %}
+    <h1 class="mt-5">Search Professors</h1>
+    <form method="get" class="my-4">
+        <div class="form-row">
+            <!-- Name Field -->
+            <div class="form-group col-md-3">
+                <input type="text" name="name" class="form-control" placeholder="Name" value="{{ name_query }}">
+            </div>
+            <!-- Research Interests Field -->
+            <div class="form-group col-md-3">
+                <label>Research Interests:</label><br>
+                {% for interest in research_interests %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="research_interests"
+                               value="{{ interest.id }}" id="interest{{ interest.id }}"
+                               {% if interest.id|stringformat:"s" in research_interests_query %}checked{% endif %}>
+                        <label class="form-check-label" for="interest{{ interest.id }}">
+                            {{ interest.name }}
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+            <!-- Country Field -->
+            <div class="form-group col-md-2">
+                <select name="country" id="country-select" class="form-control">
+                    <option value="">All Countries</option>
+                    {% for country in countries %}
+                        <option value="{{ country.name }}"
+                                {% if country_filter == country.name %}selected{% endif %}>{{ country.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- State Field -->
+            <div class="form-group col-md-2">
+                <select name="state" id="state-select" class="form-control">
+                    <option value="">All States</option>
+                    {% for state in states %}
+                        <option value="{{ state.name }}" data-country="{{ state.country.name }}"
+                                {% if state_filter == state.name %}selected{% endif %}>{{ state.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- University Field -->
+            <div class="form-group col-md-2">
+                <select name="university" id="university-select" class="form-control">
+                    <option value="">All Universities</option>
+                    {% for university in universities %}
+                        <option value="{{ university.name }}" data-state="{{ university.state.name }}"
+                                {% if university_filter == university.name %}selected{% endif %}>{{ university.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- Department Field -->
+            <div class="form-group col-md-2">
+                <select name="department" id="department-select" class="form-control">
+                    <option value="">All Departments</option>
+                    {% for department in departments %}
+                        <option value="{{ department.name }}" data-university="{{ department.university.name }}"
+                                {% if department_filter == department.name %}selected{% endif %}>{{ department.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    <!-- Results -->
+    {% if professors %}
+        <h2>Results</h2>
+        <ul class="list-group mb-4">
+            {% for professor in professors %}
+                <li class="list-group-item">
+                    <strong><a href="{% url 'professor_detail' professor.id %}">{{ professor.name }}</a></strong><br>
+                    Department: <a
+                        href="{% url 'department_detail' professor.department.id %}">{{ professor.department.name }}</a><br>
+                    University: {{ professor.university.name }}<br>
+                    Email: <a href="mailto:{{ professor.email }}">Open Mailer</a>: {{ professor.email }}<br>
+                    Research Interests:
+                    {% for interest in professor.research_interests.all %}
+                        {{ interest.name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}<br>
+                    Location: {{ professor.university.state.name }}, {{ professor.university.state.country.name }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No professors found.</p>
+    {% endif %}
+
+    <!-- JavaScript for Dynamic Dropdowns -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const countrySelect = document.getElementById('country-select');
+            const stateSelect = document.getElementById('state-select');
+            const universitySelect = document.getElementById('university-select');
+            const departmentSelect = document.getElementById('department-select');
+
+            function filterStates() {
+                const selectedCountry = countrySelect.value;
+                const states = stateSelect.querySelectorAll('option[data-country]');
+                states.forEach(option => {
+                    if (selectedCountry === '' || option.getAttribute('data-country') === selectedCountry) {
+                        option.style.display = '';
+                    } else {
+                        option.style.display = 'none';
+                        option.selected = false;
+                    }
+                });
+                filterUniversities();
+            }
+
+            function filterUniversities() {
+                const selectedState = stateSelect.value;
+                const universities = universitySelect.querySelectorAll('option[data-state]');
+                universities.forEach(option => {
+                    if (selectedState === '' || option.getAttribute('data-state') === selectedState) {
+                        option.style.display = '';
+                    } else {
+                        option.style.display = 'none';
+                        option.selected = false;
+                    }
+                });
+                filterDepartments();
+            }
+
+            function filterDepartments() {
+                const selectedUniversity = universitySelect.value;
+                const departments = departmentSelect.querySelectorAll('option[data-university]');
+                departments.forEach(option => {
+                    if (selectedUniversity === '' || option.getAttribute('data-university') === selectedUniversity) {
+                        option.style.display = '';
+                    } else {
+                        option.style.display = 'none';
+                        option.selected = false;
+                    }
+                });
+            }
+
+            countrySelect.addEventListener('change', filterStates);
+            stateSelect.addEventListener('change', filterUniversities);
+            universitySelect.addEventListener('change', filterDepartments);
+
+            // Initial filter on page load
+            filterStates();
+        });
+    </script>
+
+{% endblock %}

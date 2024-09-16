@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>University Search Portal</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script>
+        <!-- Add to your template -->
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.querySelector('input[name="q"]');
+            searchInput.addEventListener('keyup', function () {
+                // Implement dynamic filtering logic here
+            });
+        });
+    </script>
+
+    </script>
+</head>
+<body>
+<div class="container">
+    <h1 class="mt-5">Search for Universities, Professors, and Funding Opportunities</h1>
+    <form method="get" class="form-inline my-4">
+        <input type="text" name="q" class="form-control mr-2" placeholder="Enter search term..." value="{{ query }}">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    {% if universities or professors or funding_opportunities %}
+        <h2>Results</h2>
+        {% if universities %}
+            <h3>Universities</h3>
+            <ul class="list-group mb-4">
+                {% for university in universities %}
+                    <li class="list-group-item">
+                        <a href="{{ university.website }}">{{ university.name }}</a> - {{ university.location }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% if professors %}
+            <h3>Professors</h3>
+            <ul class="list-group mb-4">
+                {% for professor in professors %}
+                    <li class="list-group-item">
+                        {{ professor.name }} at {{ professor.university.name }} - {{ professor.department }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% if funding_opportunities %}
+            <h3>Funding Opportunities</h3>
+            <ul class="list-group mb-4">
+                {% for funding in funding_opportunities %}
+                    <li class="list-group-item">
+                        {{ funding.title }} - Deadline: {{ funding.deadline }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% else %}
+        <p>No results found for "{{ query }}".</p>
+    {% endif %}
+</div>
+</body>
+</html>

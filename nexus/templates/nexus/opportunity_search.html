@@ -1,0 +1,127 @@
+<!-- search_app/templates/search_app/opportunity_search.html -->
+{% extends 'nexus/base.html' %}
+
+{% block title %}Funding Opportunity Search{% endblock %}
+
+{% block content %}
+<h1 class="mt-5">Search Funding Opportunities</h1>
+<form method="get" class="my-4">
+    <div class="form-row">
+        <div class="form-group col-md-3">
+            <input type="text" name="title" class="form-control" placeholder="Title" value="{{ title_query }}">
+        </div>
+        <div class="form-group col-md-2">
+            <select name="country" id="country-select" class="form-control">
+                <option value="">All Countries</option>
+                {% for country in countries %}
+                    <option value="{{ country.name }}" {% if country_filter == country.name %}selected{% endif %}>{{ country.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group col-md-2">
+            <select name="state" id="state-select" class="form-control">
+                <option value="">All States</option>
+                {% for state in states %}
+                    <option value="{{ state.name }}" data-country="{{ state.country.name }}" {% if state_filter == state.name %}selected{% endif %}>{{ state.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group col-md-2">
+            <select name="university" id="university-select" class="form-control">
+                <option value="">All Universities</option>
+                {% for university in universities %}
+                    <option value="{{ university.name }}" data-state="{{ university.state.name }}" {% if university_filter == university.name %}selected{% endif %}>{{ university.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group col-md-1">
+            <input type="number" name="min_grant_amount" class="form-control" placeholder="Min $" value="{{ min_grant_amount }}">
+        </div>
+        <div class="form-group col-md-1">
+            <input type="number" name="max_grant_amount" class="form-control" placeholder="Max $" value="{{ max_grant_amount }}">
+        </div>
+        <div class="form-group col-md-1">
+            <select name="funding_percentage" class="form-control">
+                <option value="">All</option>
+                <option value="100" {% if funding_percentage_filter == '100' %}selected{% endif %}>100%</option>
+                <option value="75" {% if funding_percentage_filter == '75' %}selected{% endif %}>75%</option>
+                <option value="50" {% if funding_percentage_filter == '50' %}selected{% endif %}>50%</option>
+                <option value="other" {% if funding_percentage_filter == 'other' %}selected{% endif %}>Others</option>
+            </select>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
+
+{% if opportunities %}
+    <h2>Results</h2>
+    <ul class="list-group mb-4">
+        {% for opportunity in opportunities %}
+            <li class="list-group-item">
+                <strong>{{ opportunity.title }}</strong><br>
+                {% if opportunity.university %}
+                    University: {{ opportunity.university.name }}, {{ opportunity.university.state.name }}, {{ opportunity.university.state.country.name }}<br>
+                {% elif opportunity.state %}
+                    Location: {{ opportunity.state.name }}, {{ opportunity.state.country.name }}<br>
+                {% elif opportunity.country %}
+                    Country: {{ opportunity.country.name }}<br>
+                {% else %}
+                    Location: Not specified<br>
+                {% endif %}
+                Grant Amount: ${{ opportunity.grant_amount }}<br>
+                Funding: {{ opportunity.get_funding_percentage_display }}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No funding opportunities found.</p>
+{% endif %}
+
+<script>
+    // JavaScript to filter states and universities based on selected country and state
+    document.addEventListener('DOMContentLoaded', function() {
+        const countrySelect = document.getElementById('country-select');
+        const stateSelect = document.getElementById('state-select');
+        const universitySelect = document.getElementById('university-select');
+
+        function filterStates() {
+            const selectedCountry = countrySelect.value;
+            const states = stateSelect.querySelectorAll('option[data-country]');
+            states.forEach(option => {
+                if (selectedCountry === '' || option.getAttribute('data-country') === selectedCountry) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                    if (option.selected) {
+                        option.selected = false;
+                    }
+                }
+            });
+            // After filtering states, trigger university filtering
+            filterUniversities();
+        }
+
+        function filterUniversities() {
+            const selectedState = stateSelect.value;
+            const universities = universitySelect.querySelectorAll('option[data-state]');
+            universities.forEach(option => {
+                if (selectedState === '' || option.getAttribute('data-state') === selectedState) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                    if (option.selected) {
+                        option.selected = false;
+                    }
+                }
+            });
+        }
+
+        countrySelect.addEventListener('change', filterStates);
+        stateSelect.addEventListener('change', filterUniversities);
+
+        // Initial filter on page load
+        filterStates();
+    });
+</script>
+
+{% endblock %}

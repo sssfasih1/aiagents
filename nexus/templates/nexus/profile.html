@@ -1,0 +1,30 @@
+<!-- nexus/templates/nexus/profile.html -->
+
+{% extends 'nexus/base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<h1 class="mt-5">My Profile</h1>
+
+<h2>Shortlisted Universities</h2>
+{% if shortlisted_universities %}
+    <ul class="list-group mb-4">
+        {% for university in shortlisted_universities %}
+            <li class="list-group-item">
+                <a href="{{ university.website }}">{{ university.name }}</a><br>
+                Location: {{ university.state.name }}, {{ university.state.country.name }}<br>
+                Type: {{ university.get_public_private_display }}<br>
+
+                <!-- Remove from Shortlist Button -->
+                <form method="post" action="{% url 'remove_shortlist_university' university.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger mt-2">Remove from Shortlist</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>You haven't shortlisted any universities yet.</p>
+{% endif %}
+{% endblock %}

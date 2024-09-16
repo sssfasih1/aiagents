@@ -1,0 +1,1 @@
+web: gunicorn ScholarshipNexus.wsgi --log-file -

@@ -1,0 +1,130 @@
+{% extends 'nexus/base.html' %}
+
+{% block title %}University Search{% endblock %}
+
+{% block content %}
+<h1 class="mt-5">Search Universities</h1>
+
+<!-- Search Form -->
+<form method="get" class="my-4">
+    <div class="form-row">
+        <!-- University Name Search -->
+        <div class="form-group col-md-3">
+            <input type="text" name="name" class="form-control" placeholder="University Name" value="{{ name_query }}">
+        </div>
+
+        <!-- Public/Private Filter -->
+        <div class="form-group col-md-2">
+            <select name="public_private" class="form-control">
+                <option value="">All Types</option>
+                <option value="public" {% if public_private_filter == 'public' %}selected{% endif %}>Public</option>
+                <option value="private" {% if public_private_filter == 'private' %}selected{% endif %}>Private</option>
+            </select>
+        </div>
+
+        <!-- Country Filter -->
+        <div class="form-group col-md-2">
+            <select name="country" id="country-select" class="form-control">
+                <option value="">All Countries</option>
+                {% for country in countries %}
+                    <option value="{{ country.name }}" {% if country_filter == country.name %}selected{% endif %}>{{ country.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- State Filter -->
+        <div class="form-group col-md-2">
+            <select name="state" id="state-select" class="form-control">
+                <option value="">All States</option>
+                {% for state in states %}
+                    <option value="{{ state.name }}" data-country="{{ state.country.name }}" {% if state_filter == state.name %}selected{% endif %}>{{ state.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-group col-md-2">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </div>
+</form>
+
+<!-- University Results -->
+{% if universities %}
+    <h2>Results</h2>
+    <ul class="list-group mb-4">
+        {% for university in universities %}
+
+            <li class="list-group-item">
+            <a href="{% url 'university_detail' university.id %}">Show Details</a>
+                <a href="{{ university.website }}">{{ university.name }}</a><br>
+                Location: {{ university.state.name }}, {{ university.state.country.name }}<br>
+                Type: {{ university.get_public_private_display }}<br>
+                {% if university.acceptance_rate %}
+                    Acceptance Rate: {{ university.acceptance_rate }}%
+                {% else %}
+                    Acceptance Rate: N/A
+                {% endif %}
+
+            </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Pagination Controls -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            {% if universities.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ universities.previous_page_number }}&name={{ name_query }}&public_private={{ public_private_filter }}&country={{ country_filter }}&state={{ state_filter }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+            {% for num in universities.paginator.page_range %}
+                {% if universities.number == num %}
+                    <li class="page-item active"><a class="page-link">{{ num }}</a></li>
+                {% elif num > universities.number|add:'-3' and num < universities.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}&name={{ name_query }}&public_private={{ public_private_filter }}&country={{ country_filter }}&state={{ state_filter }}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if universities.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ universities.next_page_number }}&name={{ name_query }}&public_private={{ public_private_filter }}&country={{ country_filter }}&state={{ state_filter }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% else %}
+    <p>No universities found.</p>
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const countrySelect = document.getElementById('country-select');
+        const stateSelect = document.getElementById('state-select');
+
+        function filterStates() {
+            const selectedCountry = countrySelect.value;
+            const states = stateSelect.querySelectorAll('option[data-country]');
+            states.forEach(option => {
+                if (selectedCountry === '' || option.getAttribute('data-country') === selectedCountry) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                    if (option.selected) {
+                        option.selected = false;
+                    }
+                }
+            });
+        }
+
+        countrySelect.addEventListener('change', filterStates);
+
+        // Initial filter on page load
+        filterStates();
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'nexus/base.html' %}
+
+{% block title %}{{ university.name }} Details{% endblock %}
+
+{% block content %}
+<h1 class="mt-5">{{ university.name }}</h1>
+<p><strong>Website:</strong> <a href="{{ university.website }}">{{ university.website }}</a></p>
+<p><strong>Type:</strong> {{ university.get_public_private_display }}</p>
+{% if university.acceptance_rate %}
+<p><strong>Acceptance Rate:</strong> {{ university.acceptance_rate }}%</p>
+{% endif %}
+<p><strong>Location:</strong> {{ university.state.name }}, {{ university.state.country.name }}</p>
+
+<h2>Departments at {{ university.name }}</h2>
+<ul class="list-group">
+    {% for department in departments %}
+        <li class="list-group-item">
+            <a href="{% url 'department_detail' department.id %}">{{ department.name }}</a>
+        </li>
+    {% empty %}
+        <li class="list-group-item">No departments found at this university.</li>
+    {% endfor %}
+</ul>
+{% endblock %}
+
